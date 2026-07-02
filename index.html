@@ -278,21 +278,7 @@ h1.hero-name .grad{
 .avatar-placeholder span{font-size:.72rem;text-align:center;padding:0 1.2rem;line-height:1.6;font-family:'JetBrains Mono',monospace}
 .avatar-frame img{width:100%;height:100%;object-fit:cover;display:none}
 
-/* Floating icons around avatar */
-.float-icons{position:absolute;inset:0;pointer-events:none}
-.fi{
-  position:absolute;width:36px;height:36px;border-radius:9px;
-  background:var(--glass-bg);border:1px solid var(--glass-border);
-  display:flex;align-items:center;justify-content:center;font-size:1rem;
-  color:var(--accent);backdrop-filter:blur(8px);
-  animation:floating 3s ease-in-out infinite;
-}
-.fi:nth-child(1){top:10%;right:-18px;animation-delay:0s}
-.fi:nth-child(2){top:40%;right:-22px;animation-delay:.6s}
-.fi:nth-child(3){bottom:15%;right:-16px;animation-delay:1.2s}
-.fi:nth-child(4){top:10%;left:-18px;animation-delay:.3s}
-.fi:nth-child(5){bottom:25%;left:-20px;animation-delay:.9s}
-@keyframes floating{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
+/* floating icons removed */
 
 /* ══════════════════════════════════════════
    HERO SLIDESHOW
@@ -812,15 +798,7 @@ footer{
         <span>Add your photo<br/>images/profile.jpg</span>
       </div>
       <img src="images/profile.jpg" id="avatarImg" alt="Samiul Islam"/>
-      <!-- Floating tech icons -->
-      <div class="float-icons">
-        <div class="fi"><i class="fab fa-python"></i></div>
-        <div class="fi"><i class="fab fa-flutter" style="font-size:.8rem;font-family:'Space Grotesk';font-weight:700;color:var(--accent)">Fl</i></div>
-        <div class="fi"><i class="fab fa-js"></i></div>
-        <div class="fi"><i class="fas fa-brain"></i></div>
-        <div class="fi"><i class="fab fa-github"></i></div>
-      </div>
-    </div>
+    </div><!-- end avatar-frame -->
   </div>
 </section>
 
