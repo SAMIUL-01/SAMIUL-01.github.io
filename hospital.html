@@ -1,0 +1,1039 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse — Hospital Management System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0A1420;
+    --panel:#0F1D2E;
+    --panel-2:#132436;
+    --line:#1E3247;
+    --pulse:#4FD8C4;
+    --pulse-dim:#2A5F58;
+    --alert:#FF6B6B;
+    --alert-dim:#5A2E30;
+    --amber:#F4B860;
+    --ivory:#EAF2F8;
+    --muted:#7C93A8;
+    --muted-2:#4C6478;
+    --radius:14px;
+    --radius-sm:8px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:
+      radial-gradient(ellipse 900px 500px at 15% -10%, rgba(79,216,196,0.08), transparent),
+      radial-gradient(ellipse 700px 500px at 100% 10%, rgba(79,216,196,0.05), transparent),
+      var(--ink);
+    color:var(--ivory);
+    font-family:'Inter',sans-serif;
+    min-height:100vh;
+    -webkit-font-smoothing:antialiased;
+  }
+  ::selection{background:var(--pulse-dim); color:var(--ivory);}
+  ::-webkit-scrollbar{width:10px; height:10px;}
+  ::-webkit-scrollbar-track{background:var(--panel);}
+  ::-webkit-scrollbar-thumb{background:var(--line); border-radius:8px;}
+
+  h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+  .mono{font-family:'JetBrains Mono',monospace;}
+
+  a{color:inherit;}
+  button{font-family:inherit; cursor:pointer;}
+  input,select,textarea{font-family:inherit;}
+
+  /* ===================== LOGIN GATE ===================== */
+  #loginGate{
+    position:fixed; inset:0; z-index:100;
+    display:flex; align-items:center; justify-content:center;
+    background:var(--ink);
+  }
+  #loginGate::before{
+    content:'';
+    position:absolute; inset:0;
+    background:
+      radial-gradient(ellipse 800px 500px at 50% 0%, rgba(79,216,196,0.10), transparent 70%);
+  }
+  .login-card{
+    position:relative; z-index:1;
+    width:min(380px, 90vw);
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:var(--radius);
+    padding:36px 32px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.4);
+  }
+  .login-brand{
+    display:flex; align-items:center; gap:10px; margin-bottom:6px;
+  }
+  .login-brand .dot{
+    width:10px; height:10px; border-radius:50%; background:var(--pulse);
+    box-shadow:0 0 0 4px rgba(79,216,196,0.15);
+  }
+  .login-brand span{font-family:'Space Grotesk'; font-weight:700; font-size:1.05rem; letter-spacing:0.02em;}
+  .login-card p.sub{color:var(--muted); font-size:0.85rem; margin-bottom:26px;}
+  .field{margin-bottom:16px;}
+  .field label{display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:7px;}
+  .field input{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:11px 13px; color:var(--ivory); font-size:0.92rem; outline:none;
+    transition:border-color .15s;
+  }
+  .field input:focus{border-color:var(--pulse);}
+  .btn-primary{
+    width:100%; background:var(--pulse); color:#04211D; border:none; border-radius:var(--radius-sm);
+    padding:12px; font-weight:600; font-size:0.92rem; margin-top:6px;
+    transition:transform .12s, box-shadow .12s;
+  }
+  .btn-primary:hover{box-shadow:0 6px 20px rgba(79,216,196,0.25); transform:translateY(-1px);}
+  .btn-primary:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible{
+    outline:2px solid var(--pulse); outline-offset:2px;
+  }
+  .login-hint{margin-top:16px; font-size:0.75rem; color:var(--muted-2); text-align:center;}
+  .login-error{color:var(--alert); font-size:0.8rem; margin-top:10px; min-height:1em;}
+
+  /* ===================== APP SHELL ===================== */
+  #app{display:none; min-height:100vh;}
+  #app.active{display:flex;}
+
+  .sidebar{
+    width:230px; flex-shrink:0;
+    background:var(--panel);
+    border-right:1px solid var(--line);
+    padding:22px 16px;
+    display:flex; flex-direction:column;
+    position:sticky; top:0; height:100vh;
+  }
+  .brand{display:flex; align-items:center; gap:9px; padding:6px 8px 22px 8px;}
+  .brand .dot{width:9px; height:9px; border-radius:50%; background:var(--pulse); box-shadow:0 0 0 4px rgba(79,216,196,0.15);}
+  .brand span{font-weight:700; font-size:1rem; letter-spacing:0.02em;}
+
+  .nav-item{
+    display:flex; align-items:center; gap:10px;
+    padding:10px 12px; border-radius:var(--radius-sm); margin-bottom:2px;
+    color:var(--muted); font-size:0.87rem; font-weight:500;
+    background:none; border:none; width:100%; text-align:left;
+    transition:background .12s, color .12s;
+  }
+  .nav-item:hover{background:var(--panel-2); color:var(--ivory);}
+  .nav-item.active{background:var(--panel-2); color:var(--pulse);}
+  .nav-item .icon{width:16px; text-align:center; font-size:0.95rem;}
+
+  .sidebar-footer{margin-top:auto; padding-top:16px; border-top:1px solid var(--line);}
+  .logout-btn{
+    background:none; border:1px solid var(--line); color:var(--muted);
+    width:100%; padding:9px; border-radius:var(--radius-sm); font-size:0.8rem;
+    transition:border-color .12s, color .12s;
+  }
+  .logout-btn:hover{border-color:var(--alert); color:var(--alert);}
+
+  .main{flex:1; padding:30px 36px 60px; max-width:1100px;}
+  .view{display:none;}
+  .view.active{display:block; animation:fadeIn .25s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(4px);} to{opacity:1; transform:translateY(0);}}
+
+  .view-header{display:flex; align-items:baseline; justify-content:space-between; margin-bottom:24px; flex-wrap:wrap; gap:10px;}
+  .view-header h2{font-size:1.5rem; font-weight:600;}
+  .view-header .eyebrow{font-size:0.72rem; text-transform:uppercase; letter-spacing:0.1em; color:var(--pulse); margin-bottom:4px; display:block;}
+
+  /* ===================== ECG SIGNATURE STRIP ===================== */
+  .ecg-strip{
+    height:54px; border-radius:var(--radius); border:1px solid var(--line);
+    background:var(--panel); margin-bottom:26px; overflow:hidden; position:relative;
+  }
+  .ecg-strip svg{width:200%; height:100%; display:block; animation:ecgScroll 6s linear infinite;}
+  @keyframes ecgScroll{from{transform:translateX(0);} to{transform:translateX(-50%);}}
+  .ecg-label{
+    position:absolute; left:14px; top:50%; transform:translateY(-50%);
+    font-size:0.7rem; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;
+    background:linear-gradient(90deg, var(--panel) 60%, transparent); padding-right:24px;
+  }
+
+  /* ===================== STAT CARDS ===================== */
+  .stat-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:14px; margin-bottom:28px;}
+  .stat-card{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:18px 20px;
+  }
+  .stat-card .num{font-family:'Space Grotesk'; font-size:1.8rem; font-weight:600; color:var(--pulse);}
+  .stat-card .label{font-size:0.78rem; color:var(--muted); margin-top:4px;}
+  .stat-card.alert .num{color:var(--alert);}
+
+  /* ===================== CARDS / PANELS ===================== */
+  .panel{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    padding:22px; margin-bottom:20px;
+  }
+  .panel h3{font-size:1rem; font-weight:600; margin-bottom:16px;}
+
+  .form-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px;}
+  .field-inline label{display:block; font-size:0.72rem; text-transform:uppercase; letter-spacing:0.06em; color:var(--muted); margin-bottom:6px;}
+  .field-inline input, .field-inline select{
+    width:100%; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm);
+    padding:9px 11px; color:var(--ivory); font-size:0.88rem; outline:none;
+  }
+  .field-inline input:focus, .field-inline select:focus{border-color:var(--pulse);}
+
+  .btn{
+    background:var(--panel-2); color:var(--ivory); border:1px solid var(--line);
+    padding:9px 16px; border-radius:var(--radius-sm); font-size:0.85rem; font-weight:500;
+    transition:border-color .12s, background .12s;
+  }
+  .btn:hover{border-color:var(--pulse);}
+  .btn-accent{background:var(--pulse); color:#04211D; border:none; font-weight:600;}
+  .btn-accent:hover{box-shadow:0 4px 14px rgba(79,216,196,0.25);}
+  .btn-danger{background:transparent; border:1px solid var(--alert-dim); color:var(--alert);}
+  .btn-danger:hover{background:rgba(255,107,107,0.08); border-color:var(--alert);}
+  .btn-sm{padding:6px 12px; font-size:0.78rem;}
+  .btn-row{display:flex; gap:10px; margin-top:16px; flex-wrap:wrap;}
+
+  table{width:100%; border-collapse:collapse; font-size:0.86rem;}
+  thead th{
+    text-align:left; font-size:0.7rem; text-transform:uppercase; letter-spacing:0.06em;
+    color:var(--muted); padding:0 12px 10px; border-bottom:1px solid var(--line); font-weight:600;
+  }
+  tbody td{padding:12px; border-bottom:1px solid var(--line); vertical-align:middle;}
+  tbody tr:last-child td{border-bottom:none;}
+  tbody tr:hover{background:var(--panel-2);}
+  .id-cell{color:var(--pulse); font-family:'JetBrains Mono'; font-size:0.8rem;}
+  .empty-row td{text-align:center; color:var(--muted-2); padding:28px; font-size:0.85rem;}
+
+  .badge{display:inline-block; padding:3px 9px; border-radius:20px; font-size:0.72rem; font-weight:600;}
+  .badge-low{background:rgba(255,107,107,0.12); color:var(--alert);}
+  .badge-ok{background:rgba(79,216,196,0.12); color:var(--pulse);}
+
+  /* Queue visualization */
+  .queue-track{display:flex; gap:12px; overflow-x:auto; padding:6px 2px 14px;}
+  .queue-node{
+    flex-shrink:0; width:200px; background:var(--panel-2); border:1px solid var(--line);
+    border-radius:var(--radius-sm); padding:14px; position:relative;
+  }
+  .queue-node.front{border-color:var(--pulse); box-shadow:0 0 0 1px var(--pulse) inset;}
+  .queue-node .pos{font-family:'JetBrains Mono'; font-size:0.7rem; color:var(--muted); margin-bottom:8px;}
+  .queue-node .pname{font-weight:600; font-size:0.9rem; margin-bottom:2px;}
+  .queue-node .dname{font-size:0.78rem; color:var(--muted); margin-bottom:8px;}
+  .queue-node .time{font-family:'JetBrains Mono'; font-size:0.68rem; color:var(--muted-2);}
+  .queue-arrow{align-self:center; color:var(--muted-2); flex-shrink:0; font-size:1.1rem;}
+  .front-tag{
+    position:absolute; top:-9px; right:10px; background:var(--pulse); color:#04211D;
+    font-size:0.62rem; font-weight:700; padding:2px 7px; border-radius:20px; text-transform:uppercase;
+  }
+
+  .toast{
+    position:fixed; bottom:24px; right:24px; z-index:200;
+    background:var(--panel-2); border:1px solid var(--pulse); color:var(--ivory);
+    padding:13px 18px; border-radius:var(--radius-sm); font-size:0.86rem;
+    box-shadow:0 10px 30px rgba(0,0,0,0.4);
+    transform:translateY(20px); opacity:0; pointer-events:none;
+    transition:transform .25s, opacity .25s;
+  }
+  .toast.show{transform:translateY(0); opacity:1;}
+  .toast.error{border-color:var(--alert);}
+
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(5,10,16,0.7); z-index:150;
+    display:none; align-items:center; justify-content:center; padding:20px;
+  }
+  .modal-backdrop.active{display:flex;}
+  .modal{
+    background:var(--panel); border:1px solid var(--line); border-radius:var(--radius);
+    width:min(480px,100%); max-height:85vh; overflow-y:auto; padding:26px;
+  }
+  .modal h3{margin-bottom:4px;}
+  .modal .sub{color:var(--muted); font-size:0.82rem; margin-bottom:18px;}
+
+  .receipt-box{
+    background:var(--panel-2); border:1px dashed var(--line); border-radius:var(--radius-sm);
+    padding:18px; font-family:'JetBrains Mono'; font-size:0.8rem; line-height:1.7; white-space:pre-wrap;
+  }
+
+  .empty-state{
+    text-align:center; padding:50px 20px; color:var(--muted-2);
+  }
+  .empty-state .big{font-size:2rem; margin-bottom:10px;}
+
+  @media (max-width:820px){
+    #app.active{flex-direction:column;}
+    .sidebar{width:100%; height:auto; position:relative; flex-direction:row; overflow-x:auto; padding:14px;}
+    .brand{display:none;}
+    .sidebar-footer{display:none;}
+    .nav-item{white-space:nowrap; margin-bottom:0;}
+    .main{padding:22px 18px 50px;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .ecg-strip svg{animation:none;}
+    .view.active{animation:none;}
+  }
+</style>
+</head>
+<body>
+
+<!-- ===================== LOGIN GATE ===================== -->
+<div id="loginGate">
+  <div class="login-card">
+    <div class="login-brand"><span class="dot"></span><span>PULSE · Hospital Management</span></div>
+    <p class="sub">Sign in to continue to the admin console.</p>
+    <form id="loginForm">
+      <div class="field">
+        <label for="loginUser">Username</label>
+        <input type="text" id="loginUser" autocomplete="username" required>
+      </div>
+      <div class="field">
+        <label for="loginPass">Password</label>
+        <input type="password" id="loginPass" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="btn-primary">Sign in</button>
+      <div class="login-error" id="loginError"></div>
+    </form>
+    <div class="login-hint">Demo credentials — Username: <strong>admin</strong> · Password: <strong>admin123</strong></div>
+  </div>
+</div>
+
+<!-- ===================== APP SHELL ===================== -->
+<div id="app">
+  <aside class="sidebar">
+    <div class="brand"><span class="dot"></span><span>PULSE</span></div>
+    <button class="nav-item active" data-view="dashboard"><span class="icon">◆</span>Dashboard</button>
+    <button class="nav-item" data-view="patients"><span class="icon">◇</span>Patients</button>
+    <button class="nav-item" data-view="doctors"><span class="icon">◈</span>Doctors</button>
+    <button class="nav-item" data-view="appointments"><span class="icon">◉</span>Appointments</button>
+    <button class="nav-item" data-view="medicines"><span class="icon">◐</span>Medicines</button>
+    <button class="nav-item" data-view="billing"><span class="icon">◑</span>Billing</button>
+    <button class="nav-item" data-view="bills"><span class="icon">◒</span>Bill History</button>
+    <div class="sidebar-footer">
+      <button class="logout-btn" id="logoutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="main">
+
+    <!-- ============ DASHBOARD ============ -->
+    <section class="view active" id="view-dashboard">
+      <div class="view-header">
+        <div><span class="eyebrow">Overview</span><h2>Dashboard</h2></div>
+      </div>
+      <div class="ecg-strip">
+        <span class="ecg-label">System status: live</span>
+        <svg viewBox="0 0 600 54" preserveAspectRatio="none">
+          <polyline fill="none" stroke="#4FD8C4" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
+            points="0,27 40,27 55,27 62,10 70,44 78,5 86,27 100,27 160,27 175,27 182,10 190,44 198,5 206,27 220,27 280,27 295,27 302,10 310,44 318,5 326,27 340,27 400,27 415,27 422,10 430,44 438,5 446,27 460,27 520,27 535,27 542,10 550,44 558,5 566,27 580,27 600,27"/>
+          <polyline fill="none" stroke="#4FD8C4" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"
+            points="600,27 640,27 655,27 662,10 670,44 678,5 686,27 700,27 760,27 775,27 782,10 790,44 798,5 806,27 820,27 880,27 895,27 902,10 910,44 918,5 926,27 940,27 1000,27 1015,27 1022,10 1030,44 1038,5 1046,27 1060,27 1120,27 1135,27 1142,10 1150,44 1158,5 1166,27 1180,27 1200,27"/>
+        </svg>
+      </div>
+      <div class="stat-grid" id="statGrid"></div>
+
+      <div class="panel">
+        <h3>Next in queue</h3>
+        <div id="dashQueuePreview"></div>
+      </div>
+    </section>
+
+    <!-- ============ PATIENTS ============ -->
+    <section class="view" id="view-patients">
+      <div class="view-header">
+        <div><span class="eyebrow">Records</span><h2>Patients</h2></div>
+      </div>
+
+      <div class="panel">
+        <h3>Add patient</h3>
+        <form id="patientForm" class="form-grid">
+          <div class="field-inline"><label>Full name</label><input type="text" id="pName" required></div>
+          <div class="field-inline"><label>Age</label><input type="number" id="pAge" min="0" max="130" required></div>
+          <div class="field-inline"><label>Gender</label>
+            <select id="pGender"><option value="M">Male</option><option value="F">Female</option><option value="O">Other</option></select>
+          </div>
+          <div class="field-inline"><label>Disease / problem</label><input type="text" id="pDisease" required></div>
+          <div class="field-inline"><label>Contact number</label><input type="text" id="pContact" required></div>
+        </form>
+        <div class="btn-row"><button class="btn btn-accent" id="pAddBtn">+ Add patient</button></div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h3 style="margin:0;">All patients</h3>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <input type="text" id="patientSearch" placeholder="Search by name or ID…" style="background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 11px; color:var(--ivory); font-size:0.85rem; outline:none; width:190px;">
+            <select id="patientSort" style="background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 11px; color:var(--ivory); font-size:0.85rem;">
+              <option value="">Sort: default</option>
+              <option value="name">Sort: name (A–Z)</option>
+              <option value="age">Sort: age (low–high)</option>
+            </select>
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Age</th><th>Sex</th><th>Disease</th><th>Contact</th><th></th></tr></thead>
+          <tbody id="patientTableBody"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ DOCTORS ============ -->
+    <section class="view" id="view-doctors">
+      <div class="view-header">
+        <div><span class="eyebrow">Staff</span><h2>Doctors</h2></div>
+      </div>
+
+      <div class="panel">
+        <h3>Add doctor</h3>
+        <form id="doctorForm" class="form-grid">
+          <div class="field-inline"><label>Full name</label><input type="text" id="dName" required></div>
+          <div class="field-inline"><label>Specialization</label><input type="text" id="dSpec" required></div>
+          <div class="field-inline"><label>Consultation fee (৳)</label><input type="number" id="dFee" min="0" required></div>
+        </form>
+        <div class="btn-row"><button class="btn btn-accent" id="dAddBtn">+ Add doctor</button></div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h3 style="margin:0;">All doctors</h3>
+          <input type="text" id="doctorSearch" placeholder="Search by specialization…" style="background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:8px 11px; color:var(--ivory); font-size:0.85rem; outline:none; width:210px;">
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Specialization</th><th>Fee</th><th></th></tr></thead>
+          <tbody id="doctorTableBody"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ APPOINTMENTS ============ -->
+    <section class="view" id="view-appointments">
+      <div class="view-header">
+        <div><span class="eyebrow">Linked-list queue · FIFO</span><h2>Appointments</h2></div>
+      </div>
+
+      <div class="panel">
+        <h3>Book appointment</h3>
+        <form id="apptForm" class="form-grid">
+          <div class="field-inline"><label>Patient</label><select id="apptPatient"></select></div>
+          <div class="field-inline"><label>Doctor</label><select id="apptDoctor"></select></div>
+        </form>
+        <div class="btn-row"><button class="btn btn-accent" id="apptAddBtn">+ Book appointment (enqueue)</button></div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+          <h3 style="margin:0;">Queue</h3>
+          <button class="btn btn-sm" id="serveBtn">Serve next (dequeue) →</button>
+        </div>
+        <p style="color:var(--muted); font-size:0.8rem; margin-bottom:14px;">First booked, first served. Scroll horizontally to see the full queue.</p>
+        <div class="queue-track" id="queueTrack"></div>
+      </div>
+    </section>
+
+    <!-- ============ MEDICINES ============ -->
+    <section class="view" id="view-medicines">
+      <div class="view-header">
+        <div><span class="eyebrow">Inventory</span><h2>Medicines</h2></div>
+      </div>
+
+      <div class="panel">
+        <h3>Add medicine</h3>
+        <form id="medForm" class="form-grid">
+          <div class="field-inline"><label>Name</label><input type="text" id="mName" required></div>
+          <div class="field-inline"><label>Quantity in stock</label><input type="number" id="mQty" min="0" required></div>
+          <div class="field-inline"><label>Price / unit (৳)</label><input type="number" id="mPrice" min="0" step="0.01" required></div>
+        </form>
+        <div class="btn-row"><button class="btn btn-accent" id="mAddBtn">+ Add medicine</button></div>
+      </div>
+
+      <div class="panel">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; flex-wrap:wrap; gap:10px;">
+          <h3 style="margin:0;">Inventory</h3>
+          <div style="display:flex; gap:8px; align-items:center;">
+            <label style="font-size:0.78rem; color:var(--muted);">Low-stock threshold</label>
+            <input type="number" id="lowStockThreshold" value="10" min="0" style="width:70px; background:var(--panel-2); border:1px solid var(--line); border-radius:var(--radius-sm); padding:7px 9px; color:var(--ivory); font-size:0.85rem;">
+          </div>
+        </div>
+        <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>ID</th><th>Name</th><th>Stock</th><th>Price</th><th>Status</th><th></th></tr></thead>
+          <tbody id="medTableBody"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BILLING ============ -->
+    <section class="view" id="view-billing">
+      <div class="view-header">
+        <div><span class="eyebrow">Checkout</span><h2>Generate bill</h2></div>
+      </div>
+
+      <div class="panel">
+        <div class="form-grid">
+          <div class="field-inline"><label>Patient</label><select id="billPatient"></select></div>
+          <div class="field-inline"><label>Doctor (consultation taken)</label><select id="billDoctor"></select></div>
+        </div>
+
+        <h3 style="margin-top:22px;">Medicines prescribed</h3>
+        <div id="billMedRows"></div>
+        <div class="btn-row">
+          <button class="btn btn-sm" id="addMedRowBtn">+ Add medicine line</button>
+        </div>
+
+        <div style="margin-top:20px; padding-top:18px; border-top:1px solid var(--line); display:flex; justify-content:space-between; align-items:center;">
+          <div class="mono" style="font-size:1.3rem; color:var(--pulse);">Total: ৳<span id="billTotal">0.00</span></div>
+          <button class="btn btn-accent" id="generateBillBtn">Generate bill & receipt</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ BILL HISTORY ============ -->
+    <section class="view" id="view-bills">
+      <div class="view-header">
+        <div><span class="eyebrow">Ledger</span><h2>Bill history</h2></div>
+      </div>
+      <div class="panel">
+        <div style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Date/time</th><th>Patient</th><th>Doctor</th><th>Total</th><th></th></tr></thead>
+          <tbody id="billsTableBody"></tbody>
+        </table>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- Receipt Modal -->
+<div class="modal-backdrop" id="receiptModal">
+  <div class="modal">
+    <h3>Receipt</h3>
+    <p class="sub">Generated just now — you can copy or screenshot this.</p>
+    <div class="receipt-box" id="receiptContent"></div>
+    <div class="btn-row"><button class="btn" id="closeReceiptBtn">Close</button></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  "use strict";
+
+  // ===================== STORAGE HELPERS =====================
+  const DB_KEYS = {
+    patients:'hms_patients', doctors:'hms_doctors', medicines:'hms_medicines',
+    appts:'hms_appointments', bills:'hms_bills'
+  };
+  function load(key){ try{ return JSON.parse(localStorage.getItem(key)) || []; }catch(e){ return []; } }
+  function save(key, data){ localStorage.setItem(key, JSON.stringify(data)); }
+  function nextId(arr){ return arr.length ? Math.max(...arr.map(x=>x.id)) + 1 : 1; }
+
+  let patients = load(DB_KEYS.patients);
+  let doctors  = load(DB_KEYS.doctors);
+  let medicines= load(DB_KEYS.medicines);
+  let appts    = load(DB_KEYS.appts);   // array = queue, index 0 = front
+  let bills    = load(DB_KEYS.bills);
+
+  // ===================== TOAST =====================
+  let toastTimer;
+  function toast(msg, isError){
+    const el = document.getElementById('toast');
+    el.textContent = msg;
+    el.classList.toggle('error', !!isError);
+    el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> el.classList.remove('show'), 2600);
+  }
+
+  function nowStr(){
+    const d = new Date();
+    const pad = n => String(n).padStart(2,'0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+
+  // ===================== LOGIN =====================
+  const ADMIN_USER = 'admin', ADMIN_PASS = 'admin123';
+  const loginGate = document.getElementById('loginGate');
+  const appShell = document.getElementById('app');
+
+  function checkSession(){
+    if (sessionStorage.getItem('hms_authed') === '1'){
+      loginGate.style.display = 'none';
+      appShell.classList.add('active');
+      renderAll();
+    }
+  }
+  document.getElementById('loginForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    const u = document.getElementById('loginUser').value.trim();
+    const p = document.getElementById('loginPass').value;
+    const errEl = document.getElementById('loginError');
+    if (u === ADMIN_USER && p === ADMIN_PASS){
+      sessionStorage.setItem('hms_authed','1');
+      errEl.textContent='';
+      loginGate.style.display='none';
+      appShell.classList.add('active');
+      renderAll();
+    } else {
+      errEl.textContent = 'Invalid username or password.';
+    }
+  });
+  document.getElementById('logoutBtn').addEventListener('click', function(){
+    sessionStorage.removeItem('hms_authed');
+    location.reload();
+  });
+
+  // ===================== NAVIGATION =====================
+  document.querySelectorAll('.nav-item[data-view]').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.nav-item[data-view]').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+      document.getElementById('view-'+btn.dataset.view).classList.add('active');
+      if (btn.dataset.view === 'billing') refreshBillMedRows();
+    });
+  });
+
+  // ===================== DASHBOARD =====================
+  function renderDashboard(){
+    const lowStock = medicines.filter(m=>m.quantity < 10).length;
+    const stats = [
+      {label:'Total patients', num: patients.length},
+      {label:'Total doctors', num: doctors.length},
+      {label:'Pending appointments', num: appts.length},
+      {label:'Medicines tracked', num: medicines.length},
+      {label:'Low stock items', num: lowStock, alert: lowStock>0},
+      {label:'Bills generated', num: bills.length},
+    ];
+    document.getElementById('statGrid').innerHTML = stats.map(s=>`
+      <div class="stat-card ${s.alert?'alert':''}">
+        <div class="num">${s.num}</div>
+        <div class="label">${s.label}</div>
+      </div>`).join('');
+
+    const prev = document.getElementById('dashQueuePreview');
+    if (!appts.length){
+      prev.innerHTML = `<div class="empty-state"><div class="big">—</div>No pending appointments right now.</div>`;
+    } else {
+      const a = appts[0];
+      prev.innerHTML = `<div class="queue-node front" style="width:auto; display:inline-block;">
+        <span class="front-tag">Front</span>
+        <div class="pos">Position 1 of ${appts.length}</div>
+        <div class="pname">${esc(a.patientName)}</div>
+        <div class="dname">with ${esc(a.doctorName)}</div>
+        <div class="time">Booked ${a.bookingTime}</div>
+      </div>`;
+    }
+  }
+
+  // ===================== PATIENTS =====================
+  function renderPatients(){
+    const body = document.getElementById('patientTableBody');
+    const search = document.getElementById('patientSearch').value.trim().toLowerCase();
+    const sortBy = document.getElementById('patientSort').value;
+    let list = [...patients];
+    if (search){
+      list = list.filter(p => p.name.toLowerCase().includes(search) || String(p.id)===search);
+    }
+    if (sortBy === 'name') list.sort((a,b)=>a.name.localeCompare(b.name));
+    if (sortBy === 'age') list.sort((a,b)=>a.age-b.age);
+
+    if (!list.length){
+      body.innerHTML = `<tr class="empty-row"><td colspan="7">No patients found. Add one above.</td></tr>`;
+    } else {
+      body.innerHTML = list.map(p=>`
+        <tr>
+          <td class="id-cell">#${p.id}</td>
+          <td>${esc(p.name)}</td>
+          <td>${p.age}</td>
+          <td>${esc(p.gender)}</td>
+          <td>${esc(p.disease)}</td>
+          <td>${esc(p.contact)}</td>
+          <td><button class="btn btn-sm btn-danger" data-del-patient="${p.id}">Delete</button></td>
+        </tr>`).join('');
+    }
+    refreshPatientDropdowns();
+  }
+
+  document.getElementById('pAddBtn').addEventListener('click', function(){
+    const name = document.getElementById('pName').value.trim();
+    const age = document.getElementById('pAge').value;
+    const gender = document.getElementById('pGender').value;
+    const disease = document.getElementById('pDisease').value.trim();
+    const contact = document.getElementById('pContact').value.trim();
+    if (!name || age==='' || !disease || !contact){ toast('Please fill in all patient fields.', true); return; }
+    const p = { id: nextId(patients), name, age: Number(age), gender, disease, contact };
+    patients.push(p); save(DB_KEYS.patients, patients);
+    document.getElementById('patientForm').reset();
+    toast(`Patient added — ID #${p.id}`);
+    renderPatients(); renderDashboard();
+  });
+
+  document.getElementById('patientTableBody').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-del-patient]');
+    if (!btn) return;
+    const id = Number(btn.dataset.delPatient);
+    patients = patients.filter(p=>p.id!==id);
+    save(DB_KEYS.patients, patients);
+    toast('Patient deleted.');
+    renderPatients(); renderDashboard();
+  });
+  document.getElementById('patientSearch').addEventListener('input', renderPatients);
+  document.getElementById('patientSort').addEventListener('change', renderPatients);
+
+  // ===================== DOCTORS =====================
+  function renderDoctors(){
+    const body = document.getElementById('doctorTableBody');
+    const search = document.getElementById('doctorSearch').value.trim().toLowerCase();
+    let list = [...doctors];
+    if (search) list = list.filter(d=>d.specialization.toLowerCase().includes(search));
+
+    if (!list.length){
+      body.innerHTML = `<tr class="empty-row"><td colspan="5">${search? 'No doctors match that specialization.' : 'No doctors yet. Add one above.'}</td></tr>`;
+    } else {
+      body.innerHTML = list.map(d=>`
+        <tr>
+          <td class="id-cell">#${d.id}</td>
+          <td>${esc(d.name)}</td>
+          <td>${esc(d.specialization)}</td>
+          <td>৳${d.fee}</td>
+          <td><button class="btn btn-sm btn-danger" data-del-doctor="${d.id}">Delete</button></td>
+        </tr>`).join('');
+    }
+    refreshDoctorDropdowns();
+  }
+
+  document.getElementById('dAddBtn').addEventListener('click', function(){
+    const name = document.getElementById('dName').value.trim();
+    const spec = document.getElementById('dSpec').value.trim();
+    const fee = document.getElementById('dFee').value;
+    if (!name || !spec || fee===''){ toast('Please fill in all doctor fields.', true); return; }
+    const d = { id: nextId(doctors), name, specialization: spec, fee: Number(fee) };
+    doctors.push(d); save(DB_KEYS.doctors, doctors);
+    document.getElementById('doctorForm').reset();
+    toast(`Doctor added — ID #${d.id}`);
+    renderDoctors(); renderDashboard();
+  });
+
+  document.getElementById('doctorTableBody').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-del-doctor]');
+    if (!btn) return;
+    const id = Number(btn.dataset.delDoctor);
+    doctors = doctors.filter(d=>d.id!==id);
+    save(DB_KEYS.doctors, doctors);
+    toast('Doctor deleted.');
+    renderDoctors(); renderDashboard();
+  });
+  document.getElementById('doctorSearch').addEventListener('input', renderDoctors);
+
+  // ===================== APPOINTMENTS (QUEUE) =====================
+  function refreshPatientDropdowns(){
+    const opts = patients.map(p=>`<option value="${p.id}">#${p.id} — ${esc(p.name)}</option>`).join('');
+    ['apptPatient','billPatient'].forEach(id=>{
+      const el = document.getElementById(id);
+      const prev = el.value;
+      el.innerHTML = opts || `<option value="">No patients yet</option>`;
+      if (prev) el.value = prev;
+    });
+  }
+  function refreshDoctorDropdowns(){
+    const opts = doctors.map(d=>`<option value="${d.id}">#${d.id} — ${esc(d.name)} (${esc(d.specialization)})</option>`).join('');
+    ['apptDoctor','billDoctor'].forEach(id=>{
+      const el = document.getElementById(id);
+      const prev = el.value;
+      el.innerHTML = opts || `<option value="">No doctors yet</option>`;
+      if (prev) el.value = prev;
+    });
+  }
+
+  function renderQueue(){
+    const track = document.getElementById('queueTrack');
+    if (!appts.length){
+      track.innerHTML = `<div class="empty-state" style="width:100%;"><div class="big">—</div>Queue is empty. Book an appointment above.</div>`;
+      return;
+    }
+    let html = '';
+    appts.forEach((a,i)=>{
+      html += `<div class="queue-node ${i===0?'front':''}">
+        ${i===0?'<span class="front-tag">Front</span>':''}
+        <div class="pos">Position ${i+1}</div>
+        <div class="pname">${esc(a.patientName)}</div>
+        <div class="dname">with ${esc(a.doctorName)}</div>
+        <div class="time">${a.bookingTime}</div>
+        <button class="btn btn-sm btn-danger" style="margin-top:10px; width:100%;" data-cancel-appt="${i}">Cancel</button>
+      </div>`;
+      if (i < appts.length-1) html += `<div class="queue-arrow">→</div>`;
+    });
+    track.innerHTML = html;
+  }
+
+  document.getElementById('apptAddBtn').addEventListener('click', function(){
+    const pId = Number(document.getElementById('apptPatient').value);
+    const dId = Number(document.getElementById('apptDoctor').value);
+    const p = patients.find(x=>x.id===pId);
+    const d = doctors.find(x=>x.id===dId);
+    if (!p || !d){ toast('Add a patient and a doctor first.', true); return; }
+    appts.push({ patientId:p.id, patientName:p.name, doctorId:d.id, doctorName:d.name, bookingTime: nowStr() });
+    save(DB_KEYS.appts, appts);
+    toast(`Appointment booked — position ${appts.length} in queue.`);
+    renderQueue(); renderDashboard();
+  });
+
+  document.getElementById('serveBtn').addEventListener('click', function(){
+    if (!appts.length){ toast('No appointments in queue.', true); return; }
+    const served = appts.shift();
+    save(DB_KEYS.appts, appts);
+    toast(`Served: ${served.patientName} with ${served.doctorName}.`);
+    renderQueue(); renderDashboard();
+  });
+
+  document.getElementById('queueTrack').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-cancel-appt]');
+    if (!btn) return;
+    const idx = Number(btn.dataset.cancelAppt);
+    const removed = appts.splice(idx,1)[0];
+    save(DB_KEYS.appts, appts);
+    toast(`Cancelled appointment for ${removed.patientName}.`);
+    renderQueue(); renderDashboard();
+  });
+
+  // ===================== MEDICINES =====================
+  function renderMedicines(){
+    const body = document.getElementById('medTableBody');
+    const threshold = Number(document.getElementById('lowStockThreshold').value) || 0;
+    if (!medicines.length){
+      body.innerHTML = `<tr class="empty-row"><td colspan="6">No medicines yet. Add one above.</td></tr>`;
+    } else {
+      body.innerHTML = medicines.map(m=>{
+        const low = m.quantity < threshold;
+        return `<tr>
+          <td class="id-cell">#${m.id}</td>
+          <td>${esc(m.name)}</td>
+          <td>
+            <input type="number" min="0" value="${m.quantity}" data-stock-id="${m.id}"
+              style="width:70px; background:var(--panel-2); border:1px solid var(--line); border-radius:6px; padding:5px 8px; color:var(--ivory);">
+          </td>
+          <td>৳${m.price}</td>
+          <td>${low? '<span class="badge badge-low">Low stock</span>' : '<span class="badge badge-ok">In stock</span>'}</td>
+          <td><button class="btn btn-sm btn-danger" data-del-med="${m.id}">Delete</button></td>
+        </tr>`;
+      }).join('');
+    }
+    refreshMedDropdownsEverywhere();
+  }
+
+  document.getElementById('mAddBtn').addEventListener('click', function(){
+    const name = document.getElementById('mName').value.trim();
+    const qty = document.getElementById('mQty').value;
+    const price = document.getElementById('mPrice').value;
+    if (!name || qty==='' || price===''){ toast('Please fill in all medicine fields.', true); return; }
+    const m = { id: nextId(medicines), name, quantity: Number(qty), price: Number(price) };
+    medicines.push(m); save(DB_KEYS.medicines, medicines);
+    document.getElementById('medForm').reset();
+    toast(`Medicine added — ID #${m.id}`);
+    renderMedicines(); renderDashboard();
+  });
+
+  document.getElementById('medTableBody').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-del-med]');
+    if (!btn) return;
+    const id = Number(btn.dataset.delMed);
+    medicines = medicines.filter(m=>m.id!==id);
+    save(DB_KEYS.medicines, medicines);
+    toast('Medicine deleted.');
+    renderMedicines(); renderDashboard();
+  });
+  document.getElementById('medTableBody').addEventListener('change', function(e){
+    const input = e.target.closest('[data-stock-id]');
+    if (!input) return;
+    const id = Number(input.dataset.stockId);
+    const med = medicines.find(m=>m.id===id);
+    if (med){
+      med.quantity = Math.max(0, Number(input.value)||0);
+      save(DB_KEYS.medicines, medicines);
+      toast(`${med.name} stock updated to ${med.quantity}.`);
+      renderMedicines(); renderDashboard();
+    }
+  });
+  document.getElementById('lowStockThreshold').addEventListener('input', renderMedicines);
+
+  // ===================== BILLING =====================
+  let billMedRowCount = 0;
+  function refreshMedDropdownsEverywhere(){
+    document.querySelectorAll('.medRowSelect').forEach(sel=>{
+      const prev = sel.value;
+      sel.innerHTML = medicines.map(m=>`<option value="${m.id}">#${m.id} — ${esc(m.name)} (stock: ${m.quantity}, ৳${m.price})</option>`).join('') || `<option value="">No medicines yet</option>`;
+      if (prev) sel.value = prev;
+    });
+  }
+
+  function addMedRow(){
+    billMedRowCount++;
+    const rowId = 'medrow_'+billMedRowCount;
+    const wrap = document.createElement('div');
+    wrap.className = 'form-grid';
+    wrap.style.marginTop = '10px';
+    wrap.id = rowId;
+    wrap.innerHTML = `
+      <div class="field-inline"><label>Medicine</label>
+        <select class="medRowSelect">${medicines.map(m=>`<option value="${m.id}">#${m.id} — ${esc(m.name)} (stock: ${m.quantity}, ৳${m.price})</option>`).join('') || '<option value="">No medicines yet</option>'}</select>
+      </div>
+      <div class="field-inline"><label>Quantity</label><input type="number" class="medRowQty" min="1" value="1"></div>
+      <div class="field-inline" style="display:flex; align-items:flex-end;"><button class="btn btn-sm btn-danger" type="button" data-remove-row="${rowId}">Remove</button></div>
+    `;
+    document.getElementById('billMedRows').appendChild(wrap);
+    wrap.querySelector('.medRowSelect').addEventListener('change', updateBillTotal);
+    wrap.querySelector('.medRowQty').addEventListener('input', updateBillTotal);
+    updateBillTotal();
+  }
+
+  function refreshBillMedRows(){
+    document.getElementById('billMedRows').innerHTML = '';
+    billMedRowCount = 0;
+    refreshPatientDropdowns(); refreshDoctorDropdowns();
+    updateBillTotal();
+  }
+
+  document.getElementById('addMedRowBtn').addEventListener('click', addMedRow);
+  document.getElementById('billMedRows').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-remove-row]');
+    if (!btn) return;
+    document.getElementById(btn.dataset.removeRow).remove();
+    updateBillTotal();
+  });
+  document.getElementById('billDoctor').addEventListener('change', updateBillTotal);
+
+  function updateBillTotal(){
+    const dId = Number(document.getElementById('billDoctor').value);
+    const doc = doctors.find(d=>d.id===dId);
+    let total = doc ? doc.fee : 0;
+    document.querySelectorAll('#billMedRows > div').forEach(row=>{
+      const sel = row.querySelector('.medRowSelect');
+      const qtyInput = row.querySelector('.medRowQty');
+      if (!sel || !qtyInput) return;
+      const med = medicines.find(m=>m.id===Number(sel.value));
+      const qty = Number(qtyInput.value)||0;
+      if (med) total += med.price * qty;
+    });
+    document.getElementById('billTotal').textContent = total.toFixed(2);
+  }
+
+  document.getElementById('generateBillBtn').addEventListener('click', function(){
+    const pId = Number(document.getElementById('billPatient').value);
+    const dId = Number(document.getElementById('billDoctor').value);
+    const patient = patients.find(p=>p.id===pId);
+    const doctor = doctors.find(d=>d.id===dId);
+    if (!patient || !doctor){ toast('Select a patient and a doctor first.', true); return; }
+
+    const lines = [];
+    let total = doctor.fee;
+    let stockError = null;
+
+    document.querySelectorAll('#billMedRows > div').forEach(row=>{
+      const sel = row.querySelector('.medRowSelect');
+      const qtyInput = row.querySelector('.medRowQty');
+      if (!sel || !sel.value) return;
+      const med = medicines.find(m=>m.id===Number(sel.value));
+      const qty = Number(qtyInput.value)||0;
+      if (!med || qty<=0) return;
+      if (qty > med.quantity){ stockError = `Not enough stock for ${med.name} (available: ${med.quantity}).`; return; }
+      const cost = med.price * qty;
+      total += cost;
+      lines.push({ name: med.name, qty, cost, medId: med.id });
+    });
+
+    if (stockError){ toast(stockError, true); return; }
+
+    // deduct stock
+    lines.forEach(l=>{
+      const med = medicines.find(m=>m.id===l.medId);
+      if (med) med.quantity -= l.qty;
+    });
+    save(DB_KEYS.medicines, medicines);
+
+    const bill = {
+      id: nextId(bills), patientId: patient.id, patientName: patient.name,
+      doctorId: doctor.id, doctorName: doctor.name, doctorSpec: doctor.specialization,
+      fee: doctor.fee, medicines: lines, total, dateTime: nowStr()
+    };
+    bills.push(bill); save(DB_KEYS.bills, bills);
+
+    showReceipt(bill);
+    document.getElementById('billMedRows').innerHTML = '';
+    updateBillTotal();
+    toast(`Bill generated — total ৳${total.toFixed(2)}`);
+    renderMedicines(); renderBills(); renderDashboard();
+  });
+
+  function showReceipt(bill){
+    const lines = bill.medicines.map(l=>`  - ${l.name} x ${l.qty} = ৳${l.cost.toFixed(2)}`).join('\n');
+    const text =
+`========================================
+      HOSPITAL MANAGEMENT SYSTEM
+            PATIENT RECEIPT
+========================================
+Date/Time     : ${bill.dateTime}
+Patient       : ${bill.patientName} (ID #${bill.patientId})
+Doctor        : ${bill.doctorName} (${bill.doctorSpec})
+Consultation  : ৳${bill.fee.toFixed(2)}
+----------------------------------------
+Medicines:
+${lines || '  (none)'}
+----------------------------------------
+TOTAL BILL    : ৳${bill.total.toFixed(2)}
+========================================
+        Thank you. Get well soon.
+========================================`;
+    document.getElementById('receiptContent').textContent = text;
+    document.getElementById('receiptModal').classList.add('active');
+  }
+  document.getElementById('closeReceiptBtn').addEventListener('click', function(){
+    document.getElementById('receiptModal').classList.remove('active');
+  });
+
+  // ===================== BILL HISTORY =====================
+  function renderBills(){
+    const body = document.getElementById('billsTableBody');
+    if (!bills.length){
+      body.innerHTML = `<tr class="empty-row"><td colspan="5">No bills generated yet.</td></tr>`;
+    } else {
+      body.innerHTML = [...bills].reverse().map(b=>`
+        <tr>
+          <td class="mono" style="font-size:0.78rem;">${b.dateTime}</td>
+          <td>${esc(b.patientName)}</td>
+          <td>${esc(b.doctorName)}</td>
+          <td>৳${b.total.toFixed(2)}</td>
+          <td><button class="btn btn-sm" data-view-receipt="${b.id}">View receipt</button></td>
+        </tr>`).join('');
+    }
+  }
+  document.getElementById('billsTableBody').addEventListener('click', function(e){
+    const btn = e.target.closest('[data-view-receipt]');
+    if (!btn) return;
+    const bill = bills.find(b=>b.id===Number(btn.dataset.viewReceipt));
+    if (bill) showReceipt(bill);
+  });
+
+  // ===================== UTIL =====================
+  function esc(str){
+    return String(str).replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  }
+
+  function renderAll(){
+    renderDashboard();
+    renderPatients();
+    renderDoctors();
+    renderQueue();
+    renderMedicines();
+    refreshBillMedRows();
+    renderBills();
+  }
+
+  checkSession();
+})();
+</script>
+</body>
+</html>
